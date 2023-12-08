@@ -10,7 +10,11 @@ by Jean Jimenez
 [Problem #1 R-Pubs Link](http://rpubs.com/sleepysloth12/1124828)
 
 [Problem #1 RMD](https://github.com/sleepysloth12/data605_final/blob/main/jjimenez_605_finalpt1.Rmd)
+
+
 [Problem #1 PDF](https://github.com/sleepysloth12/data605_final/blob/main/jjimenez_605_finalpt1.pdf)
+
+
 [Problem #1 HTML](https://github.com/sleepysloth12/data605_final/blob/main/jjimenez_605_finalpt1.html)
 
 # Problem 2
@@ -20,6 +24,8 @@ by Jean Jimenez
 [Problem #2 R-Pubs Link](http://rpubs.com/sleepysloth12/1126909)
 
 [Problem #2 RMD](https://github.com/sleepysloth12/data605_final/blob/main/jjimenez_605_finalpt2.Rmd)
+
+
 [Problem #2 HTML](https://github.com/sleepysloth12/data605_final/blob/main/jjimenez_605_finalpt2.html)
 
 

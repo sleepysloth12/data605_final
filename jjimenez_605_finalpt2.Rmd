@@ -1,0 +1,441 @@
+---
+title: 'Data 605 Final Problem #2'
+author: "Jean Jimenez"
+date: "2023-12-05"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Problem #2
+
+## Question
+
+You are to register for Kaggle.com (free) and compete in the Regression with a Crab Age Dataset competition.  <https://www.kaggle.com/competitions/playground-series-s3e16>  I want you to do the following.
+
+*5 points.  Descriptive and Inferential Statistics.* Provide univariate descriptive statistics and appropriate plots for the training data set.  Provide a scatterplot matrix for at least two of the independent variables and the dependent variable. Derive a correlation matrix for *any* three quantitative variables in the dataset.  Test the hypotheses that the correlations between each pairwise set of variables is 0 and provide an 80% confidence interval.  Discuss the meaning of your analysis.  Would you be worried about familywise error? Why or why not?
+
+*5 points. Linear Algebra and Correlation.* Invert your correlation matrix from above. (This is known as the precision matrix and contains variance inflation factors on the diagonal.) Multiply the correlation matrix by the precision matrix, and then multiply the precision matrix by the correlation matrix. Conduct **LDU** decomposition on the matrix. 
+
+*5 points.  Calculus-Based Probability & Statistics*.  Many times, it makes sense to fit a closed form distribution to data.  Select a variable in the Kaggle.com training dataset that is skewed to the right, shift it so that the minimum value is absolutely above zero if necessary.  Then load the MASS package and run fitdistr to fit an exponential probability density function.  (See  <https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/fitdistr.html> ).  Find the optimal value of l for this distribution, and then take 1000 samples from this exponential distribution using this value (e.g., rexp(1000, l)).  Plot a histogram and compare it with a histogram of your original variable.   Using the exponential pdf, find the 5^th^ and 95^th^ percentiles using the cumulative distribution function (CDF).   Also generate a 95% confidence interval from the empirical data, assuming normality.  Finally, provide the empirical 5^th^ percentile and 95^th^ percentile of the data.  Discuss.
+
+*10 points.  Modeling*.  Build some type of *multiple* regression  model and **submit your model** to the competition board.  Provide your complete model summary and results with analysis.  **Report your Kaggle.com user name and score.**
+
+## Work and Answer
+
+**Dependent Variable:** Crab Age
+
+**Independent Variables Chosen:** Height, Weight, Shell Weight
+
+### Descriptive and Inferential Statistics
+
+```{r}
+library(tidyverse)
+library(GGally)
+library(Matrix)
+
+testcrab=read.csv(url("https://raw.githubusercontent.com/sleepysloth12/data605_final/main/crab_dataset/test.csv"))
+
+traincrab=read.csv(url("https://raw.githubusercontent.com/sleepysloth12/data605_final/main/crab_dataset/train.csv"))
+
+
+summary_stats_raw=traincrab %>%
+  select(Height, Weight, Shell.Weight, Age)
+
+#dependent var age dist
+
+age_dat= summary_stats_raw %>%
+  summarise(mean_age=mean(Age),
+            med_age=median(Age),
+            std_age=sd(Age),
+            var_age=std_age^2,
+            min_age=min(Age),
+            max_age=max(Age),
+            range_age= range(Age),
+            iqr_age= IQR(Age),
+            n_age=n())
+
+age_dist=ggplot(summary_stats_raw, aes(x = Age)) + 
+  geom_histogram(binwidth = 1) + 
+  coord_cartesian(xlim = c(0,35)) +
+  labs(title = "Distribution of Crab Ages")
+
+age_dist
+```
+
+Age Data seems to follow a normal distribution pattern.
+
+#### Height as an Independent Variable
+
+```{r}
+
+height_dat= summary_stats_raw %>%
+  summarise(mean_height=mean(Height),
+            med_height=median(Height),
+            std_height=sd(Height),
+            var_height=std_height^2,
+            min_height=min(Height),
+            max_height=max(Height),
+            range_height= range(Height),
+            iqr_height= IQR(Height),
+            n_height=n())
+
+height_dist=ggplot(summary_stats_raw, aes(x = Height)) + 
+  geom_histogram(binwidth = 0.01) + 
+  coord_cartesian(xlim = c(0,.75)) +
+  labs(title = "Distribution of Crab Heights")
+
+height_scatter=ggplot(summary_stats_raw, aes(x = Height, y = Age)) +
+  geom_point(position = position_jitter(width = 0.2, height = 0.2), alpha = 0.5) + 
+  theme_minimal() +
+  labs(title = "Scatterplot of Crab's Height vs. Age",
+       x = "Height",
+       y = "Age")
+
+height_dist
+height_scatter
+```
+
+Data seems to follow a normal distribution pattern.
+
+There seems to be a positive linear correlation between crab weight and age. As the crab increases in weight, the chances of it being older increases.
+
+#### Weight as an Independent Variable
+
+```{r}
+
+weight_dat= summary_stats_raw %>%
+  summarise(mean_weight=mean(Weight),
+            med_weight=median(Weight),
+            std_weight=sd(Weight),
+            var_weight=std_weight^2,
+            min_weight=min(Weight),
+            max_weight=max(Weight),
+            range_weight= range(Weight),
+            iqr_weight= IQR(Weight),
+            n_weight=n())
+
+weight_dist=ggplot(summary_stats_raw, aes(x = Weight)) + 
+  geom_histogram(binwidth = 2) + 
+  coord_cartesian(xlim = c(0,90)) +
+  labs(title = "Distribution of Crab Weights")
+height_dist
+
+weight_scatter=ggplot(summary_stats_raw, aes(x = Weight, y = Age)) +
+  geom_point(position = position_jitter(width = 0.2, height = 0.2), alpha = 0.5) + 
+  theme_minimal() +
+  labs(title = "Scatterplot of Crab's Weight vs. Age",
+       x = "Weight",
+       y = "Age")
+weight_dist
+weight_scatter
+```
+
+The Distribution of crab weights seem normal. It is a little bit skewed to the right.
+
+There seems to be a positive linear correlation between crab weight and age. As the crab increases in weight, the chances of it being older increases.
+
+#### Shell Weight as an Independent Variable
+
+```{r}
+
+shell_weight_dat= summary_stats_raw %>%
+  summarise(mean_shell_weight=mean(Shell.Weight),
+            med_shell_weight=median(Shell.Weight),
+            std_shell_weight=sd(Shell.Weight),
+            var_shell_weight=std_shell_weight^2,
+            min_shell_weight=min(Shell.Weight),
+            max_shell_weight=max(Shell.Weight),
+            range_shell_weight= range(Shell.Weight),
+            iqr_shell_weight= IQR(Shell.Weight),
+            n_shell_weight=n())
+
+shell_weight_dist=ggplot(summary_stats_raw, aes(x = Shell.Weight)) + 
+  geom_histogram(binwidth = 1) + 
+  coord_cartesian(xlim = c(0,25)) +
+  labs(title = "Distribution of Crab Shell Weights")
+
+
+shell_weight_scatter=ggplot(summary_stats_raw, aes(x = Shell.Weight, y = Age)) +
+  geom_point(position = position_jitter(width = 0.2, height = 0.2), alpha = 0.5) + 
+  theme_minimal() +
+  labs(title = "Scatterplot of Crab's Shell Weight vs. Age",
+       x = "Shell Weight",
+       y = "Age")
+
+shell_weight_dist
+shell_weight_scatter
+```
+
+The Distribution of crab shell weights seem normal. It is a little bit skewed to the right.
+
+There seems to be a positive linear correlation between crab shell weight and age. As the crab increases in shell weight, the chances of it being older increases.
+
+#### Correlation Matrix
+
+**Null Hypothesis:** There is no (significant) correlation between a Crab's shell weight and a crab's age.
+
+**Alt. Hypothesis:** There is a (significant) correlation between a Crab's Shell weight and a crab's age.
+
+```{r}
+
+cor_matrix = cor(summary_stats_raw[, c("Height","Weight","Shell.Weight", "Age")], use = "complete.obs")
+print(cor_matrix)
+
+
+cor_test_result = cor.test(summary_stats_raw$Shell.Weight, summary_stats_raw$Age, conf.level=0.80)
+
+
+print(cor_test_result)
+
+```
+
+There is a 80% that the values fall between 0.6608 and 0.6661 [80% Confidence Interval].
+
+Since the P-value is less than the alpha value of 0.05, we **reject the null hypothesis.**
+
+**There is a significant correlation between a Crab's Shell Weight and a Crab's age.**
+
+**Null Hypothesis:** There is no (significant) correlation between a Crab's weight and a crab's age.
+
+**Alt. Hypothesis:** There is a (significant) correlation between a Crab's weight and a crab's age.
+
+```{r}
+
+
+cor_test_result2 = cor.test(summary_stats_raw$Weight, summary_stats_raw$Age, conf.level=0.80)
+
+
+print(cor_test_result2)
+
+```
+
+There is a 80% that the values fall between 0.5981 and 0.6041 [80% Confidence Interval].
+
+Since the P-value is less than the alpha value of 0.05, we **reject the null hypothesis.**
+
+**There is a significant correlation between a Crab's Weight and a Crab's age.**
+
+**Null Hypothesis:** There is no (significant) correlation between a Crab's height and a crab's age.
+
+**Alt. Hypothesis:** There is a (significant) correlation between a Crab's height and a crab's age.
+
+```{r}
+
+
+cor_test_result3 = cor.test(summary_stats_raw$Height, summary_stats_raw$Age, conf.level=0.80)
+
+
+print(cor_test_result3)
+
+```
+
+There is a 80% that the values fall between 0.6352 and 0.6408 [80% Confidence Interval].
+
+Since the P-value is less than the alpha value of 0.05, we **reject the null hypothesis.**
+
+**There is a significant correlation between a Crab's height and a Crab's age.**
+
+#### Interpretation
+
+1.  The Age, Height, Weight, and Shell Weight of crabs seem to follow a normal distribution.
+
+2.  There is a positive correlation between each of the physical characteristics (Height, Weight, Shell Weight) and the Age of crabs. This means that as crabs grow older, they tend to be larger in these physical dimensions.
+
+3.  The hypothesis tests conducted for each pair of variables (Height vs. Age, Weight vs. Age, Shell Weight vs. Age) show significant correlations, as indicated by the p-values being less than the alpha value of 0.05. This means that these correlations are unlikely to be due to random chance.
+
+#### Family wise Error
+
+In my analysis, I tested multiple hypotheses. When conducting multiple hypothesis tests, the chance of encountering at least one Type I error (false positive) increases. Yes, I should be worried about family wise error. To control for family wise error, you can use Bonferroni correction. This makes the criteria for statistical significance more stringent by adjusting the alpha value.
+
+### Linear Algebra and Correlation
+
+```{r}
+#precision matrix
+precision_matrix = solve(cor_matrix)
+print(precision_matrix)
+
+#correlation matrix x precision matrix
+
+r1= cor_matrix %*% precision_matrix
+r2= precision_matrix %*% cor_matrix
+
+#corr matrix x precision matrix
+
+lu_decomp1=lu(as(Matrix(r1),"CsparseMatrix"))
+L1=lu_decomp1@L
+U1= lu_decomp1@U
+
+D1= diag(diag(U1))
+
+L1= L1 %*% diag(1/diag(U1))
+
+U1= diag(1/diag(U1)) %*% U1
+
+A1= L1 %*% D1 %*% U1
+
+print("Results of LDU Decomp precision corr matrix x precision matrix")
+print(A1)
+
+#precision matrix x corr matrix
+lu_decomp2=lu(as(Matrix(r2),"CsparseMatrix"))
+L2=lu_decomp2@L
+U2= lu_decomp2@U
+
+D2= diag(diag(U2))
+
+L2= L2 %*% diag(1/diag(U2))
+
+U2= diag(1/diag(U2))%*% U2
+
+A2= L2 %*% D2 %*% U2
+
+print("Results of LDU Decomp precision matrix x corr matrix")
+print(A2)
+```
+
+### Calculus-Based Probability & Statistics
+
+#### Finding Variable skewed to the Right
+
+The distribution of Crab Shell Weights, although seeming like a bell curve and relatively normal; is skewed a little bit to the right.
+
+```{r}
+
+shell_weight_dist=ggplot(summary_stats_raw, aes(x = Shell.Weight)) + 
+  geom_histogram(binwidth = 1.5) + 
+  coord_cartesian(xlim = c(0,25)) +
+  labs(title = "Distribution of Crab Shell Weights")
+
+shell_weight_dist
+```
+
+#### Making Sure Minimum Value is above 0
+
+```{r}
+
+sw_min=min(summary_stats_raw$Shell.Weight)
+
+cat("The minimum value of Shell weight is", sw_min, "\n which is greater than 0")
+```
+
+#### MASS Package, fitdistr and sampling
+
+```{r}
+library(MASS)
+
+sw_exp=fitdistr(summary_stats_raw$Shell.Weight, densfun = "exponential")
+
+lambda=sw_exp$estimate["rate"]
+
+sw_samp=rexp(1000,lambda)
+```
+
+#### Comparing the Two Distributions
+
+##### Original Histogram
+
+```{r, echo= FALSE}
+shell_weight_dist
+```
+
+##### 
+
+##### Sampled Exponential Distribution Histogram
+
+```{r}
+sw_swamp_df=data.frame(sw_samp=sw_samp)
+
+ggplot(sw_swamp_df, aes(x = sw_samp)) + 
+  geom_histogram(binwidth = 1) + 
+  coord_cartesian(xlim = c(0,40)) +
+  labs(title = "Distribution of Crab Shell Weights")
+```
+
+Both distributions are right-skewed, but the skewness in the sampled data is more pronounced with a long tail extending further to the right. The original data has a larger sample size. You can tell by the higher counts in each bin. The y-axis scale for the original data reaches up to 10,000, while the sampled data's y-axis scale goes up to 100, suggesting a much smaller sample size. The mode of the original data is higher than the mode of the sampled data. This means that the most common value of shell weight is higher in the original data set.
+
+#### Percentiles and Confidence Intervals
+
+```{r}
+#exp dist percentiles
+
+exp_5=qexp(0.05, rate=lambda)
+exp_95=qexp(0.95, rate=lambda)
+
+#emp 95th CI
+
+mean_sw=mean(summary_stats_raw$Shell.Weight)
+sd_sw=sd(summary_stats_raw$Shell.Weight)
+ci_low=mean_sw - 1.96 * sd_sw / sqrt(length(summary_stats_raw$Shell.Weight))
+ci_up=mean_sw + 1.96 * sd_sw / sqrt(length(summary_stats_raw$Shell.Weight))
+
+#emp 95th percentile
+
+emp_5=quantile(summary_stats_raw$Shell.Weight, 0.05)
+emp_95=quantile(summary_stats_raw$Shell.Weight, 0.95)
+
+
+cat("The exponential 5th percentile is", exp_5, "\n")
+cat("The exponential 95th percentile is", exp_95, "\n")
+cat("The empirical 95% CI is", ci_low, "-", ci_up, "\n")
+cat("The empirical 5th percentile is", emp_5, "\n")
+cat("The empirical 95th percentile is", emp_95, "\n")
+```
+
+The differences between the empirical and exponential percentiles, as well as the narrow confidence interval (assuming normality), suggest that the exponential distribution may not be the best model for the distribution of crab Shell weight, especially if it is significantly skewed.
+
+### Multiple Regression Model
+
+Building a multiple regression model to predict crab age.
+
+#### Model
+
+```{r}
+
+set.seed(2245)
+
+crab_model=lm(Age ~ Height + Weight + Shucked.Weight +Viscera.Weight +  Shell.Weight ,data=traincrab)
+
+summary(crab_model)
+```
+
+3.971612 (the intercept) is the expected age when all other predictors are zero.The coefficients for Height, Weight, and Shell Weight are positive, meaning that as these measurements increase , so does age. Height has the most substantial positive impact. Shucked Weight and Viscera Weight have negative coefficients, meaning that increases in these measurements are associated with lower predicted ages. All predictors are statistically significant (\<2e-16). 53.2% (Multiple R-squared) of the variability in the age of crabs is explained by the model. The F-statistic and its associated p-value (\< 2.2e-16) are statistically significant. The predictors as a group have a significant relationship with the age of crabs.
+
+##### Plotting Residuals
+
+```{r}
+library(ggfortify)
+
+autoplot(crab_model)
+```
+
+In the residuals vs. fitted plot, there seems to be a pattern where the residuals fan out as the fitted values increase, indicating potential heteroscedasticity. The Q-Q plot indicates that the residuals deviate from the line at both ends, suggesting that residuals may not be normally distributed. The scale-location plot shows a upward trend. This means that the variance of the residuals is increasing with the fitted values, which is another sign of heteroscedasticity.
+
+##### Using Test Data to Submit to Kaggle
+
+In order to evaluate the competition, they ask you to predict ages using your code on the test data set. Afterwards, upload a file to kaggle of the data of predicted age linked with ID. They will use that to evaluate how well my model worked.
+
+```{r}
+
+predicted_ages= predict(crab_model, newdata = testcrab)
+
+testcrab$yield=predicted_ages
+
+names(testcrab)
+
+crab_sub_df = testcrab %>%
+  dplyr::select( id, yield)
+
+write.csv(crab_sub_df, "jjimenez_crab_subfile.csv")
+```
+
+My Kaggle Username is jeanj12
+
+After submitting my data, I got the score 1.571782
+
+![](kaggle_score.png)

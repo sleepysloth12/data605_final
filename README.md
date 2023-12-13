@@ -23,6 +23,11 @@ by Jean Jimenez
 
 # Problem 2
 
+
+
+[Youtube Explanation for Problem #2](https://youtu.be/JHTS1lODIBk)
+
+
 [Crab Age Dataset](https://www.kaggle.com/competitions/playground-series-s3e16)
 
 [Problem #2 R-Pubs Link](http://rpubs.com/sleepysloth12/1126909)

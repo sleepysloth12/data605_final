@@ -7,6 +7,10 @@ by Jean Jimenez
 
 # Problem 1
 
+
+[Youtube Explanation](https://youtu.be/d8jmzLQbyU8)
+
+
 [Problem #1 R-Pubs Link](http://rpubs.com/sleepysloth12/1124828)
 
 [Problem #1 RMD](https://github.com/sleepysloth12/data605_final/blob/main/jjimenez_605_finalpt1.Rmd)

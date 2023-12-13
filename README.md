@@ -8,7 +8,7 @@ by Jean Jimenez
 # Problem 1
 
 
-[Youtube Explanation](https://youtu.be/d8jmzLQbyU8)
+[Youtube Explanation for Problem #1](https://youtu.be/d8jmzLQbyU8)
 
 
 [Problem #1 R-Pubs Link](http://rpubs.com/sleepysloth12/1124828)
